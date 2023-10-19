@@ -51,14 +51,18 @@ const searchInputEl = searchWrapEl.querySelector('input')
 const searchDelayEls = [...searchWrapEl.querySelectorAll('li')]
 
 searchStarterEl.addEventListener('click', showSearch)
-//search-starter엘리먼트를 클릭하면 showsearch라는 함수를 내부적으로 실행해주면 된다. 실생하는 내용은 addEventLinster내부에서 동작한다. 그것에 대한 기본적인 원리는 자바스크립트콜백함수파트에서 배울수있다. 
-searchCloserEl.addEventListener('click', hideSearch)
+//search-starter엘리먼트를 클릭하면 showsearch라는 함수를 내부적으로 실행해주면 된다. 
+//실생하는 내용은 addEventLinster내부에서 동작한다. 그것에 대한 기본적인 원리는 자바스크립트콜백함수파트에서 배울수있다. 
+searchCloserEl.addEventListener('click', function (event) {
+  event.stopPropagation()
+  hideSearch()
+})
 searchShadowEl.addEventListener('click', hideSearch)
 //검색바를 클릭했을때 검색바가 보이는구조, 닫기버튼이나 배경그림자 선택했을 때 검색바가 닫혀질수있는 구조
 
 function showSearch(){
   headerEl.classList.add('searching')
-  document.documentElement.classList.add('fixed')
+  stopScroll()
   headerMenuEls.reverse().forEach(function(el, index){
     el.style.transitionDelay = index * .4 / headerMenuEls.length + 's'
   })
@@ -72,7 +76,7 @@ function showSearch(){
 }
 function hideSearch () {
   headerEl.classList.remove('searching')  
-  document.documentElement.classList.remove('fixed')
+  playScroll() 
   headerMenuEls.reverse().forEach(function(el, index){
     el.style.transitionDelay = index * .4 / headerMenuEls.length + 's'
   })
@@ -81,6 +85,74 @@ function hideSearch () {
   })
   searchDelayEls.reverse()
   searchInputEl.value=''
+  //검색이 종료되면, 그 안에 있는 밸류를 ''암것도 없이 초기화한다는 뜻임.
+}
+
+function playScroll() {
+  document.documentElement.classList.remove('fixed')
+}
+
+function stopScroll() {
+  document.documentElement.classList.add('fixed')
+} 
+
+//헤더 메뉴 토글!
+const menuStarterEl = document.querySelector ('header .menu-starter')
+menuStarterEl.addEventListener('click', function () {
+  if (headerEl.classList.contains('menuing')) {
+    headerEl.classList.remove('menuing')
+    searchInputEl.value=''
+    playScroll()
+  } else {
+    headerEl.classList.add('menuing')
+    stopScroll()
+  } 
+})
+
+//헤더 검색
+const searchTextfieldEl = document.querySelector('header .textfield')
+const searchCancelEl = document.querySelector('header .search-canceler')
+searchTextfieldEl.addEventListener('click', function () {
+  headerEl.classList.add('searching--mobile')
+  searchInputEl.focus()
+})
+searchCancelEl.addEventListener('click', function () {
+  headerEl.classList.remove('searching--mobile')
+})
+
+//
+window.addEventListener('resize', function () {
+  if (this.window.innerWidth <= 740) {
+    headerEl.classList.remove('searching')
+  } else {
+    headerEl.classList.remove('searching--mobile')
+  }
+})
+
+
+//
+const navEl = document.querySelector('nav')
+const navMenuTogglerEl = navEl.querySelector('.menu-toggler')
+const navMenuShadowEl = navEl.querySelector('.shadow')
+
+navMenuTogglerEl.addEventListener('click', function () {
+  if (navEl.classList.contains('menuing')) {
+    hideNavMenu()
+  } else {
+    showNavMenu()
+  }
+})
+
+navEl.addEventListener('click', function (event) {
+  event.stopPropagation()
+})
+navMenuShadowEl.addEventListener('click', hideNavMenu)
+window.addEventListener('click', hideNavMenu)
+function showNavMenu() {
+  navEl.classList.add('menuing')
+}
+function hideNavMenu() {
+  navEl.classList.remove('menuing')
 }
 
 
@@ -164,6 +236,7 @@ navigations.forEach(function (nav) {
   mapEl.innerHTML = /* html */`
   <h3>
     <span class="text">${nav.title}</span>
+    <span class="icon">+</span>
   </h3>
   <ul>
     ${mapList}
@@ -175,3 +248,11 @@ navigations.forEach(function (nav) {
 
 const thisYearEl = document.querySelector('span.this-year')
 thisYearEl.textContent = new Date().getFullYear()
+
+const mapEls = document.querySelectorAll ('footer .navigations .map')
+mapEls.forEach(function (el) {
+  const h3El = el.querySelector('h3')
+  h3El.addEventListener('click', function () {
+    el.classList.toggle('active')
+  })
+})
